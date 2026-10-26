@@ -49,5 +49,3 @@ Desarrollar una aplicación web que facilite la administración y organización 
 - Iker Andrés Arias
 - Karen Gineth Castañeda
 
-## Nota
-Las credenciales y claves secretas deben configurarse localmente y no publicarse en el repositorio.
