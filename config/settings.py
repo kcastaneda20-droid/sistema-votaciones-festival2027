@@ -110,3 +110,5 @@ STATIC_URL = "static/"
 # Clave primaria predeterminada
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Autenticación: a dónde enviar a quien intenta votar sin sesión
+LOGIN_URL = "login"

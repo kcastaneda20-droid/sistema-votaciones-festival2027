@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar voto - Festival Vallenato 2027</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f3;
+            margin: 0;
+            padding: 30px 15px;
+            color: #26352b;
+        }
+
+        .contenedor {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000015;
+        }
+
+        h1 {
+            color: #176b3a;
+            text-align: center;
+        }
+
+        .boton {
+            display: block;
+            width: 100%;
+            background: #176b3a;
+            color: white;
+            border: 0;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        a {
+            color: #176b3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Confirma tu voto</h1>
+
+        <p><strong>Categoría:</strong> {{ categoria.nombre }}</p>
+        <p><strong>Votación:</strong> {{ votacion.nombre }}</p>
+        <p><strong>Tu elección:</strong> {{ opcion.nombre }}</p>
+
+        <p>Solo puedes votar una vez en esta categoría. Después de confirmar no podrás cambiar tu voto.</p>
+
+        <form method="post" action="{% url 'votar' categoria.id opcion.id %}">
+            {% csrf_token %}
+            <button class="boton" type="submit">Confirmar voto</button>
+        </form>
+
+        <p><a href="{% url 'inicio' %}">Cancelar y volver al inicio</a></p>
+    </div>
+</body>
+</html>

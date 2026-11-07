@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis votos - Festival Vallenato 2027</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f3;
+            margin: 0;
+            padding: 30px 15px;
+            color: #26352b;
+        }
+
+        .contenedor {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000015;
+        }
+
+        h1 {
+            color: #176b3a;
+            text-align: center;
+        }
+
+        .tabla-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #e1e7e2;
+            text-align: left;
+        }
+
+        th {
+            background: #e8f4eb;
+            color: #176b3a;
+        }
+
+        a {
+            color: #176b3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Mis votos</h1>
+        <p>Usuario: <strong>{{ user.username }}</strong></p>
+
+        {% if votos %}
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Edición</th>
+                            <th>Categoría</th>
+                            <th>Votación</th>
+                            <th>Opción elegida</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voto in votos %}
+                            <tr>
+                                <td>{{ voto.edicion }}</td>
+                                <td>{{ voto.categoria.nombre }}</td>
+                                <td>{{ voto.opcion.votacion.nombre }}</td>
+                                <td>{{ voto.opcion.nombre }}</td>
+                                <td>{{ voto.fecha|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Aún no has registrado votos.</p>
+        {% endif %}
+
+        <p><a href="{% url 'inicio' %}">Volver al inicio</a></p>
+    </div>
+</body>
+</html>

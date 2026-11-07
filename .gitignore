@@ -10,6 +10,7 @@ __pycache__/
 # Variables privadas y contraseñas
 .env
 .env.*
+!.env.example
 
 # Base de datos local
 *.sqlite3

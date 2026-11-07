@@ -1,11 +1,14 @@
-
-from django.shortcuts import render, redirect, get_object_or_404
+from django import forms
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django import forms
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.db import IntegrityError, transaction
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST, require_http_methods
+
 from .models import Edicion, Votacion, Opcion, Voto
 
 
@@ -62,6 +65,18 @@ class FormularioInicioSesion(AuthenticationForm):
     )
 
 
+def destino_seguro(request):
+    """Devuelve la página a la que volver tras iniciar sesión (parámetro next)."""
+    siguiente = request.GET.get("next", "")
+    if siguiente and url_has_allowed_host_and_scheme(
+        siguiente,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return siguiente
+    return "inicio"
+
+
 # PÁGINA PRINCIPAL
 def inicio(request):
     ediciones = Edicion.objects.filter(
@@ -76,15 +91,42 @@ def inicio(request):
         "categoria__edicion"
     ).prefetch_related("opciones")
 
+    # Categorías en las que el usuario ya votó
+    categorias_votadas = set()
+    if request.user.is_authenticated:
+        categorias_votadas = set(
+            Voto.objects.filter(usuario=request.user)
+            .values_list("categoria_id", flat=True)
+        )
+
     return render(request, "votaciones/inicio.html", {
         "ediciones": ediciones,
         "votaciones": votaciones,
+        "categorias_votadas": categorias_votadas,
     })
 
 
-# REGISTRAR UN VOTO
-@require_POST
-def votar(request, opcion_id):
+def motivo_bloqueo(opcion):
+    """Devuelve por qué NO se puede votar esta opción, o None si se puede."""
+    votacion = opcion.votacion
+    categoria = votacion.categoria
+    ahora = timezone.now()
+
+    if not categoria.edicion.activa:
+        return "Esta edición del festival no está activa."
+    if not categoria.activa:
+        return "Esta categoría está cerrada."
+    if not votacion.activa:
+        return "Esta votación no está activa."
+    if ahora < votacion.fecha_inicio or ahora > votacion.fecha_fin:
+        return "Esta votación está fuera de su periodo permitido."
+    return None
+
+
+# CONFIRMAR (GET) Y REGISTRAR (POST) UN VOTO
+@login_required
+@require_http_methods(["GET", "POST"])
+def votar(request, categoria_id, opcion_id):
     opcion = get_object_or_404(
         Opcion.objects.select_related(
             "votacion",
@@ -93,36 +135,62 @@ def votar(request, opcion_id):
         ),
         pk=opcion_id
     )
-
     votacion = opcion.votacion
-    ahora = timezone.now()
+    categoria = votacion.categoria
+    edicion = categoria.edicion
 
-    if not votacion.activa:
-        messages.error(request, "Esta votación no está activa.")
-        return redirect("inicio")
-
-    if not votacion.categoria.edicion.activa:
+    # La opción debe pertenecer a la categoría indicada
+    if categoria.pk != categoria_id:
         messages.error(
             request,
-            "Esta edición del festival no está activa."
+            "La opción seleccionada no pertenece a esa categoría."
         )
         return redirect("inicio")
 
-    if ahora < votacion.fecha_inicio or ahora > votacion.fecha_fin:
+    # Categoría, edición y votación habilitadas
+    motivo = motivo_bloqueo(opcion)
+    if motivo:
+        messages.error(request, motivo)
+        return redirect("inicio")
+
+    # Un solo voto por usuario, categoría y edición
+    ya_voto = Voto.objects.filter(
+        usuario=request.user,
+        categoria=categoria,
+        edicion=edicion
+    ).exists()
+    if ya_voto:
         messages.error(
             request,
-            "Esta votación está fuera de su periodo permitido."
+            f"Ya votaste en la categoría {categoria.nombre}. "
+            "Solo se permite un voto por categoría."
         )
         return redirect("inicio")
 
-    Voto.objects.create(opcion=opcion)
+    if request.method == "POST":
+        try:
+            with transaction.atomic():
+                Voto.objects.create(usuario=request.user, opcion=opcion)
+        except IntegrityError:
+            # Dos solicitudes simultáneas: la restricción de MySQL deja pasar solo una
+            messages.error(
+                request,
+                f"Ya votaste en la categoría {categoria.nombre}. "
+                "Solo se permite un voto por categoría."
+            )
+            return redirect("inicio")
 
-    messages.success(
-        request,
-        f"Tu voto por {opcion.nombre} fue registrado."
-    )
+        messages.success(
+            request,
+            f"Tu voto por {opcion.nombre} fue registrado."
+        )
+        return redirect("inicio")
 
-    return redirect("inicio")
+    return render(request, "votaciones/confirmar_voto.html", {
+        "opcion": opcion,
+        "votacion": votacion,
+        "categoria": categoria,
+    })
 
 
 # CREAR CUENTA
@@ -140,7 +208,7 @@ def registro(request):
                 request,
                 "Tu cuenta fue creada correctamente."
             )
-            return redirect("inicio")
+            return redirect(destino_seguro(request))
     else:
         formulario = FormularioRegistro()
 
@@ -167,7 +235,7 @@ def login_usuario(request):
                 request,
                 "Has iniciado sesión correctamente."
             )
-            return redirect("inicio")
+            return redirect(destino_seguro(request))
     else:
         formulario = FormularioInicioSesion(request)
 
@@ -182,3 +250,15 @@ def logout_usuario(request):
     logout(request)
     messages.success(request, "Has cerrado sesión.")
     return redirect("inicio")
+
+
+
+# HISTORIAL DE PARTICIPACIÓN DEL USUARIO
+@login_required
+def mis_votos(request):
+    votos = (
+        Voto.objects.filter(usuario=request.user)
+        .select_related("edicion", "categoria", "opcion", "opcion__votacion")
+        .order_by("-fecha")
+    )
+    return render(request, "votaciones/mis_votos.html", {"votos": votos})

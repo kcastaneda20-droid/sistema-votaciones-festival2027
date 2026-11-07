@@ -107,11 +107,19 @@
             color: #617064;
         }
 
+        .etiqueta {
+            color: #617064;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
         @media (max-width: 600px) {
             .participante {
                 align-items: flex-start;
                 flex-direction: column;
             }
+            
+            
 
             header h1 {
                 font-size: 25px;
@@ -131,6 +139,10 @@
         {% if user.is_authenticated %}
 
             <p>Bienvenido, <strong>{{ user.username }}</strong></p>
+
+            <a class="boton boton-claro" href="{% url 'mis_votos' %}">
+                Mis votos
+            </a>
 
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
@@ -194,16 +206,13 @@
                         {% endif %}
                     </div>
 
-                    <form method="post"
-                          action="{% url 'votar' opcion.id %}">
-
-                        {% csrf_token %}
-
-                        <button class="boton" type="submit">
-                            Votar
-                        </button>
-
-                    </form>
+                    {% if votacion.categoria_id in categorias_votadas %}
+                        <span class="etiqueta">Ya votaste en esta categoría</span>
+                    {% elif not votacion.categoria.activa %}
+                        <span class="etiqueta">Categoría cerrada</span>
+                    {% else %}
+                        <a class="boton" href="{% url 'votar' votacion.categoria_id opcion.id %}">Votar</a>
+                    {% endif %}
 
                 </div>
 
