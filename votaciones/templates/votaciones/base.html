@@ -3,20 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#176b3a">
+    <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="data:,">
     <title>{% block titulo %}Votaciones{% endblock %} · Festival Vallenato 2027</title>
+
+    <script>
+        // Aplica el tema guardado antes de pintar la página (evita el parpadeo)
+        (function () {
+            try {
+                if (localStorage.getItem("tema") === "oscuro") {
+                    document.documentElement.setAttribute("data-tema", "oscuro");
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <style>
+        /* ---------- Tema claro (principal) ---------- */
         :root {
+            color-scheme: light;
+            --fondo: #fafaf7;
+            --superficie: #ffffff;
+            --texto: #1c2a22;
+            --titulo: #14221a;
+            --suave: #66756b;
+            --borde: #e8eae3;
+            --borde-fuerte: #d3d8cd;
             --verde: #176b3a;
-            --verde-oscuro: #104c29;
-            --verde-claro: #e8f4eb;
-            --fondo: #f4f7f3;
-            --texto: #26352b;
-            --gris: #617064;
-            --borde: #e1e7e2;
+            --verde-hover: #104c29;
+            --sobre-verde: #ffffff;
+            --verde-claro: #eef5ef;
+            --dorado: #d9a21b;
             --rojo: #b3261e;
             --rojo-claro: #fdeceb;
+            --pista: #eef0ea;
+            --sombra: none;
+        }
+
+        /* ---------- Tema oscuro ---------- */
+        :root[data-tema="oscuro"] {
+            color-scheme: dark;
+            --fondo: #0e1812;
+            --superficie: #15221a;
+            --texto: #e8f1ea;
+            --titulo: #f3faf5;
+            --suave: #93ab9d;
+            --borde: #223a2c;
+            --borde-fuerte: #2f4b3a;
+            --verde: #3ddc84;
+            --verde-hover: #2bc671;
+            --sobre-verde: #06210f;
+            --verde-claro: #1b3326;
+            --dorado: #e0b13a;
+            --rojo: #ff8a80;
+            --rojo-claro: #3a1c1a;
+            --pista: #223a2c;
+            --sombra: 0 6px 18px #0006;
         }
 
         * { box-sizing: border-box; }
@@ -34,12 +76,13 @@
 
         a { color: var(--verde); }
         img { max-width: 100%; }
-        h1 { font-size: 26px; margin: 0 0 8px; color: var(--verde); }
-        h2 { font-size: 21px; margin: 6px 0; }
-        h3 { font-size: 17px; margin: 0 0 4px; }
+        h1 { font-size: 27px; margin: 0 0 6px; color: var(--titulo); letter-spacing: -.02em; line-height: 1.2; }
+        h2 { font-size: 20px; margin: 10px 0 4px; color: var(--titulo); letter-spacing: -.01em; }
+        h3 { font-size: 16.5px; margin: 0; color: var(--titulo); }
+        :focus-visible { outline: 3px solid var(--dorado); outline-offset: 2px; }
 
-        /* Barra superior */
-        .barra { background: var(--verde); color: white; }
+        /* ---------- Barra superior: fondo limpio y filete dorado ---------- */
+        .barra { background: var(--fondo); color: var(--texto); border-bottom: 3px solid var(--dorado); }
         .barra-interna {
             max-width: 1000px;
             margin: 0 auto;
@@ -50,19 +93,15 @@
             justify-content: space-between;
             gap: 10px 16px;
         }
-        .marca {
-            color: white;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 18px;
-            line-height: 1.2;
-        }
-        .marca small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
+        .marca { color: var(--titulo); text-decoration: none; font-weight: 700; font-size: 17px; line-height: 1.2; }
+        .marca small { display: block; font-weight: 400; font-size: 13px; color: var(--suave); }
         .menu { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .menu form { margin: 0; }
-        .saludo { font-size: 14px; }
+        .menu .boton { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+        .saludo { font-size: 14px; color: var(--suave); }
+        .saludo strong { color: var(--texto); }
 
-        /* Botones (tamaño cómodo para el dedo: 44 px) */
+        /* ---------- Botones (44 px en las acciones principales) ---------- */
         .boton {
             display: inline-flex;
             align-items: center;
@@ -70,31 +109,39 @@
             min-height: 44px;
             padding: 10px 18px;
             background: var(--verde);
-            color: white;
-            border: 0;
-            border-radius: 8px;
+            color: var(--sobre-verde);
+            border: 1px solid var(--verde);
+            border-radius: 10px;
             font: inherit;
             font-weight: 700;
             font-size: 15px;
             text-decoration: none;
             cursor: pointer;
         }
-        .boton:hover { background: var(--verde-oscuro); }
-        .boton-claro { background: white; color: var(--verde); }
-        .boton-claro:hover { background: var(--verde-claro); }
+        .boton:hover { background: var(--verde-hover); border-color: var(--verde-hover); }
+        .boton-claro { background: transparent; color: var(--texto); border-color: var(--borde-fuerte); }
+        .boton-claro:hover { background: var(--verde-claro); border-color: var(--verde); }
         .boton-bloque { display: flex; width: 100%; }
 
-        /* Contenido */
-        .contenedor { width: 100%; max-width: 1000px; margin: 0 auto; padding: 20px 16px; flex: 1; }
+        /* Botón de tema: sol en claro, luna en oscuro */
+        .menu .tema { width: 40px; padding: 0; border-radius: 999px; }
+        .icono-sol { display: block; }
+        .icono-luna { display: none; }
+        :root[data-tema="oscuro"] .icono-sol { display: none; }
+        :root[data-tema="oscuro"] .icono-luna { display: block; }
+
+        /* ---------- Contenido ---------- */
+        .contenedor { width: 100%; max-width: 1000px; margin: 0 auto; padding: 22px 16px; flex: 1; }
         .caja { max-width: 480px; margin: 0 auto; }
-        .subtitulo { color: var(--gris); margin: 0 0 18px; }
+        .subtitulo { color: var(--suave); margin: 0 0 20px; }
 
         .tarjeta {
-            background: white;
+            background: var(--superficie);
+            border: 1px solid var(--borde);
             padding: 20px;
             margin: 0 0 18px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px #00000012;
+            border-radius: 14px;
+            box-shadow: var(--sombra);
         }
 
         .insignia {
@@ -102,39 +149,41 @@
             background: var(--verde-claro);
             color: var(--verde);
             font-weight: 700;
-            font-size: 13px;
-            padding: 3px 10px;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            padding: 4px 10px;
             border-radius: 999px;
         }
-        .etiqueta { color: var(--gris); font-weight: 700; font-size: 14px; }
+        .etiqueta { color: var(--suave); font-weight: 700; font-size: 14px; }
         .etiqueta.cerrada { color: var(--rojo); }
-        .fechas { color: var(--gris); font-size: 14px; margin: 0 0 12px; }
+        .fechas { color: var(--suave); font-size: 14px; margin: 0 0 12px; }
 
-        /* Participantes */
-        .opciones { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        /* ---------- Participantes: 1 columna en móvil, 2 o 3 en pantalla ancha ---------- */
+        .opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 12px; }
         .opcion {
             display: flex;
             flex-direction: column;
             gap: 6px;
             padding: 14px;
             border: 1px solid var(--borde);
-            border-radius: 10px;
+            border-radius: 12px;
         }
         .opcion img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; }
-        .opcion p { margin: 0; color: var(--gris); font-size: 14px; }
+        .opcion p { margin: 0; color: var(--suave); font-size: 14px; }
         .opcion .accion { margin-top: auto; padding-top: 8px; }
 
-        /* Mensajes */
+        /* ---------- Mensajes ---------- */
         .mensaje {
             padding: 12px 14px;
             margin-bottom: 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             background: var(--verde-claro);
             border-left: 5px solid var(--verde);
         }
         .mensaje.error { background: var(--rojo-claro); border-left-color: var(--rojo); color: var(--rojo); }
 
-        /* Formularios */
+        /* ---------- Formularios ---------- */
         .formulario p { margin: 0 0 14px; }
         .formulario label { display: block; font-weight: 600; margin-bottom: 4px; }
         .formulario input[type=text],
@@ -142,35 +191,36 @@
             width: 100%;
             min-height: 44px;
             padding: 10px 12px;
-            border: 1px solid #b9c5bc;
-            border-radius: 8px;
+            background: var(--superficie);
+            color: var(--texto);
+            border: 1px solid var(--borde-fuerte);
+            border-radius: 10px;
             font-size: 16px;
         }
-        .formulario .helptext, .formulario ul { font-size: 13px; color: var(--gris); }
+        .formulario .helptext, .formulario ul { font-size: 13px; color: var(--suave); }
         .formulario ul { margin: 6px 0 0; padding-left: 18px; }
         .formulario ul.errorlist { list-style: none; padding: 0; color: var(--rojo); font-weight: 600; }
 
-        /* Tabla (en celular se convierte en tarjetas) */
+        /* ---------- Tabla (en celular se convierte en tarjetas) ---------- */
         .tabla { width: 100%; border-collapse: collapse; }
         .tabla th, .tabla td { padding: 10px; border-bottom: 1px solid var(--borde); text-align: left; }
         .tabla th { background: var(--verde-claro); color: var(--verde); }
 
-        /* Resultados (solo administradores) */
+        /* ---------- Resultados (solo administradores) ---------- */
         .selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-        .selector .boton-claro { border: 1px solid var(--verde); }
         .resumen { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
-        .dato { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 3px 10px #00000012; color: var(--gris); }
+        .dato { background: var(--superficie); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; box-shadow: var(--sombra); color: var(--suave); }
         .dato strong { display: block; font-size: 28px; color: var(--verde); line-height: 1.1; }
         .resultado { margin: 12px 0; }
         .resultado-cabecera { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; margin-bottom: 4px; }
-        .barra-fondo { background: var(--verde-claro); border-radius: 999px; height: 12px; overflow: hidden; }
-        .barra-valor { background: var(--verde); height: 100%; }
+        .barra-fondo { background: var(--pista); border-radius: 999px; height: 10px; overflow: hidden; }
+        .barra-valor { background: var(--verde); height: 100%; border-radius: 999px; }
 
-        footer { text-align: center; padding: 22px 16px; color: var(--gris); font-size: 14px; }
+        footer { text-align: center; padding: 22px 16px; color: var(--suave); font-size: 14px; }
 
         @media (min-width: 700px) {
-            .opciones { grid-template-columns: repeat(2, 1fr); }
-            h1 { font-size: 30px; }
+            h1 { font-size: 32px; }
+            .contenedor { padding-top: 30px; }
         }
 
         @media (max-width: 640px) {
@@ -178,7 +228,7 @@
             .tabla, .tabla tbody, .tabla tr, .tabla td { display: block; width: 100%; }
             .tabla tr { border: 1px solid var(--borde); border-radius: 10px; margin-bottom: 12px; padding: 6px 0; }
             .tabla td { border: 0; padding: 5px 12px; }
-            .tabla td::before { content: attr(data-label) ": "; font-weight: 700; color: var(--gris); }
+            .tabla td::before { content: attr(data-label) ": "; font-weight: 700; color: var(--suave); }
         }
     </style>
 </head>
@@ -207,6 +257,11 @@
                 <a class="boton boton-claro" href="{% url 'login' %}">Iniciar sesión</a>
                 <a class="boton boton-claro" href="{% url 'registro' %}">Crear cuenta</a>
             {% endif %}
+
+            <button type="button" class="boton boton-claro tema" id="boton-tema" aria-label="Cambiar a tema oscuro" title="Cambiar a tema oscuro">
+                <svg class="icono-sol" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                <svg class="icono-luna" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            </button>
         </nav>
     </div>
 </header>
@@ -224,6 +279,33 @@
 <footer>
     Sistema Web de Votaciones · Festival de la Leyenda Vallenata 2027
 </footer>
+
+<script>
+    // Botón de tema: alterna claro/oscuro y recuerda la elección en este navegador
+    (function () {
+        var boton = document.getElementById("boton-tema");
+        if (!boton) { return; }
+        var raiz = document.documentElement;
+
+        function actualizar() {
+            var oscuro = raiz.getAttribute("data-tema") === "oscuro";
+            var texto = oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro";
+            boton.setAttribute("aria-label", texto);
+            boton.setAttribute("title", texto);
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) { meta.setAttribute("content", oscuro ? "#0e1812" : "#fafaf7"); }
+        }
+
+        boton.addEventListener("click", function () {
+            var oscuro = raiz.getAttribute("data-tema") === "oscuro";
+            if (oscuro) { raiz.removeAttribute("data-tema"); } else { raiz.setAttribute("data-tema", "oscuro"); }
+            try { localStorage.setItem("tema", oscuro ? "claro" : "oscuro"); } catch (e) {}
+            actualizar();
+        });
+
+        actualizar();
+    })();
+</script>
 
 </body>
 </html>
