@@ -10,6 +10,10 @@ class Edicion(models.Model):
     fecha_fin = models.DateField(null=True, blank=True)
     activa = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = "edición"
+        verbose_name_plural = "ediciones"
+
     def __str__(self):
         return f"{self.nombre} - {self.anio}"
 
@@ -24,6 +28,10 @@ class Categoria(models.Model):
     descripcion = models.TextField(blank=True)
     # Una categoría cerrada no recibe votos
     activa = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Categoria"
+        verbose_name_plural = "Categorias"
 
     def __str__(self):
         return self.nombre
@@ -41,6 +49,10 @@ class Votacion(models.Model):
     fecha_fin = models.DateTimeField()
     activa = models.BooleanField(default=True)
 
+    class Meta:
+            verbose_name = "Votacion"
+            verbose_name_plural = "Votaciones"
+
     def __str__(self):
         return self.nombre
 
@@ -54,6 +66,10 @@ class Opcion(models.Model):
     nombre = models.CharField(max_length=150)
     descripcion = models.TextField(blank=True)
     imagen = models.URLField(blank=True)
+
+    class Meta:
+                verbose_name = "Opcion"
+                verbose_name_plural = "Opciones"
 
     def __str__(self):
         return self.nombre
@@ -86,8 +102,9 @@ class Voto(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = "voto"
+        verbose_name_plural = "votos"
         constraints = [
-            # Un voto por usuario, categoría y edición (regla central)
             models.UniqueConstraint(
                 fields=["usuario", "categoria", "edicion"],
                 name="voto_unico_usuario_categoria_edicion",

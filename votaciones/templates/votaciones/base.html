@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176b3a">
+    <link rel="icon" href="data:,">
+    <title>{% block titulo %}Votaciones{% endblock %} · Festival Vallenato 2027</title>
+    <style>
+        :root {
+            --verde: #176b3a;
+            --verde-oscuro: #104c29;
+            --verde-claro: #e8f4eb;
+            --fondo: #f4f7f3;
+            --texto: #26352b;
+            --gris: #617064;
+            --borde: #e1e7e2;
+            --rojo: #b3261e;
+            --rojo-claro: #fdeceb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+            background: var(--fondo);
+            color: var(--texto);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { color: var(--verde); }
+        img { max-width: 100%; }
+        h1 { font-size: 26px; margin: 0 0 8px; color: var(--verde); }
+        h2 { font-size: 21px; margin: 6px 0; }
+        h3 { font-size: 17px; margin: 0 0 4px; }
+
+        /* Barra superior */
+        .barra { background: var(--verde); color: white; }
+        .barra-interna {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px 16px;
+        }
+        .marca {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1.2;
+        }
+        .marca small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
+        .menu { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .menu form { margin: 0; }
+        .saludo { font-size: 14px; }
+
+        /* Botones (tamaño cómodo para el dedo: 44 px) */
+        .boton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 10px 18px;
+            background: var(--verde);
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            font: inherit;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .boton:hover { background: var(--verde-oscuro); }
+        .boton-claro { background: white; color: var(--verde); }
+        .boton-claro:hover { background: var(--verde-claro); }
+        .boton-bloque { display: flex; width: 100%; }
+
+        /* Contenido */
+        .contenedor { width: 100%; max-width: 1000px; margin: 0 auto; padding: 20px 16px; flex: 1; }
+        .caja { max-width: 480px; margin: 0 auto; }
+        .subtitulo { color: var(--gris); margin: 0 0 18px; }
+
+        .tarjeta {
+            background: white;
+            padding: 20px;
+            margin: 0 0 18px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px #00000012;
+        }
+
+        .insignia {
+            display: inline-block;
+            background: var(--verde-claro);
+            color: var(--verde);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .etiqueta { color: var(--gris); font-weight: 700; font-size: 14px; }
+        .etiqueta.cerrada { color: var(--rojo); }
+        .fechas { color: var(--gris); font-size: 14px; margin: 0 0 12px; }
+
+        /* Participantes */
+        .opciones { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .opcion {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 14px;
+            border: 1px solid var(--borde);
+            border-radius: 10px;
+        }
+        .opcion img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; }
+        .opcion p { margin: 0; color: var(--gris); font-size: 14px; }
+        .opcion .accion { margin-top: auto; padding-top: 8px; }
+
+        /* Mensajes */
+        .mensaje {
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            background: var(--verde-claro);
+            border-left: 5px solid var(--verde);
+        }
+        .mensaje.error { background: var(--rojo-claro); border-left-color: var(--rojo); color: var(--rojo); }
+
+        /* Formularios */
+        .formulario p { margin: 0 0 14px; }
+        .formulario label { display: block; font-weight: 600; margin-bottom: 4px; }
+        .formulario input[type=text],
+        .formulario input[type=password] {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #b9c5bc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .formulario .helptext, .formulario ul { font-size: 13px; color: var(--gris); }
+        .formulario ul { margin: 6px 0 0; padding-left: 18px; }
+        .formulario ul.errorlist { list-style: none; padding: 0; color: var(--rojo); font-weight: 600; }
+
+        /* Tabla (en celular se convierte en tarjetas) */
+        .tabla { width: 100%; border-collapse: collapse; }
+        .tabla th, .tabla td { padding: 10px; border-bottom: 1px solid var(--borde); text-align: left; }
+        .tabla th { background: var(--verde-claro); color: var(--verde); }
+
+        footer { text-align: center; padding: 22px 16px; color: var(--gris); font-size: 14px; }
+
+        @media (min-width: 700px) {
+            .opciones { grid-template-columns: repeat(2, 1fr); }
+            h1 { font-size: 30px; }
+        }
+
+        @media (max-width: 640px) {
+            .tabla thead { display: none; }
+            .tabla, .tabla tbody, .tabla tr, .tabla td { display: block; width: 100%; }
+            .tabla tr { border: 1px solid var(--borde); border-radius: 10px; margin-bottom: 12px; padding: 6px 0; }
+            .tabla td { border: 0; padding: 5px 12px; }
+            .tabla td::before { content: attr(data-label) ": "; font-weight: 700; color: var(--gris); }
+        }
+    </style>
+</head>
+<body>
+
+<header class="barra">
+    <div class="barra-interna">
+        <a class="marca" href="{% url 'inicio' %}">
+            Festival de la Leyenda Vallenata 2027
+            <small>Sistema web de votaciones</small>
+        </a>
+
+        <nav class="menu">
+            {% if user.is_authenticated %}
+                <span class="saludo">Hola, <strong>{{ user.username }}</strong></span>
+                <a class="boton boton-claro" href="{% url 'mis_votos' %}">Mis votos</a>
+                {% if user.is_staff %}
+                    <a class="boton boton-claro" href="{% url 'admin:index' %}">Administración</a>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="boton boton-claro" type="submit">Cerrar sesión</button>
+                </form>
+            {% else %}
+                <a class="boton boton-claro" href="{% url 'login' %}">Iniciar sesión</a>
+                <a class="boton boton-claro" href="{% url 'registro' %}">Crear cuenta</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="contenedor">
+    {% if messages %}
+        {% for mensaje in messages %}
+            <div class="mensaje {{ mensaje.tags }}" role="status">{{ mensaje }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% block contenido %}{% endblock %}
+</main>
+
+<footer>
+    Sistema Web de Votaciones · Festival de la Leyenda Vallenata 2027
+</footer>
+
+</body>
+</html>
