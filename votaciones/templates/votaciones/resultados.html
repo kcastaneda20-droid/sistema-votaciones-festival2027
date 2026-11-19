@@ -1,0 +1,56 @@
+{% extends "votaciones/base.html" %}
+
+{% block titulo %}Resultados{% endblock %}
+
+{% block contenido %}
+    <h1>Resultados de las votaciones</h1>
+    <p class="subtitulo">Consulta exclusiva para administradores. Los datos se leen en vivo desde MySQL.</p>
+
+    {% if ediciones %}
+        <nav class="selector" aria-label="Ediciones">
+            {% for e in ediciones %}
+                <a class="boton{% if e.pk != seleccionada.pk %} boton-claro{% endif %}"
+                   href="{% url 'resultados' %}?edicion={{ e.pk }}">{{ e.nombre }} {{ e.anio }}</a>
+            {% endfor %}
+        </nav>
+
+        <div class="resumen">
+            <div class="dato"><strong>{{ total_votos }}</strong> voto{{ total_votos|pluralize }} registrado{{ total_votos|pluralize }}</div>
+            <div class="dato"><strong>{{ total_votantes }}</strong> votante{{ total_votantes|pluralize }} distinto{{ total_votantes|pluralize }}</div>
+        </div>
+    {% endif %}
+
+    {% for item in categorias %}
+        <section class="tarjeta">
+            <span class="insignia">{{ item.categoria.nombre }}</span>
+            {% if not item.categoria.activa %}
+                <span class="etiqueta cerrada">Categoría cerrada</span>
+            {% endif %}
+            <p class="fechas">{{ item.total }} voto{{ item.total|pluralize }} en esta categoría</p>
+
+            {% for bloque in item.votaciones %}
+                <h2>{{ bloque.votacion.nombre }}</h2>
+
+                {% for opcion in bloque.opciones %}
+                    <div class="resultado">
+                        <div class="resultado-cabecera">
+                            <strong>{{ opcion.nombre }}</strong>
+                            <span>{{ opcion.total }} voto{{ opcion.total|pluralize }} · {{ opcion.porcentaje }}%</span>
+                        </div>
+                        <div class="barra-fondo">
+                            <div class="barra-valor" style="width: {{ opcion.porcentaje }}%"></div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Esta votación aún no tiene participantes.</p>
+                {% endfor %}
+            {% empty %}
+                <p>Esta categoría aún no tiene votaciones.</p>
+            {% endfor %}
+        </section>
+    {% empty %}
+        <div class="tarjeta">
+            <p>No hay categorías registradas para esta edición.</p>
+        </div>
+    {% endfor %}
+{% endblock %}

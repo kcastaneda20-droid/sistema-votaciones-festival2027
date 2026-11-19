@@ -219,7 +219,6 @@ class VotoAdmin(admin.ModelAdmin):
     list_filter = ("edicion", "categoria")
     search_fields = ("usuario__username", "opcion__nombre")
     list_select_related = ("usuario", "edicion", "categoria", "opcion")
-    
 
     def has_add_permission(self, request):
         return False
